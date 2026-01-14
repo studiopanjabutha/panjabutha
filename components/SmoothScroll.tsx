@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import Lenis from 'lenis';
-import 'lenis/dist/lenis.css';
 
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -13,8 +12,6 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1,
-      smoothTouch: false,
-      touchMultiplier: 2,
       infinite: false,
     });
 
