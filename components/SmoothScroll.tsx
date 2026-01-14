@@ -1,36 +1,34 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+import Lenis from 'lenis';
+import 'lenis/dist/lenis.css';
 
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    let scroll: any;
-    
-    const initScroll = async () => {
-      const LocomotiveScroll = (await import('locomotive-scroll')).default;
-      
-      if (scrollRef.current) {
-        scroll = new LocomotiveScroll({
-          el: scrollRef.current,
-          smooth: true,
-          smoothMobile: true,
-          multiplier: 0.8,
-        });
-      }
-    };
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      smoothTouch: false,
+      touchMultiplier: 2,
+      infinite: false,
+    });
 
-    initScroll();
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
 
     return () => {
-      if (scroll) scroll.destroy();
+      lenis.destroy();
     };
   }, []);
 
-  return (
-    <div ref={scrollRef} data-scroll-container>
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 }
