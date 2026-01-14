@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { Mail, MapPin, Instagram, Linkedin, ArrowRight, Clock, Building2, Home as HomeIcon, Layers } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
@@ -20,10 +20,14 @@ export default function HomePage() {
     offset: ["start start", "end start"]
   });
   
-  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
+  // Hero content animations based on scroll
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
+  const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -100]);
   
-  const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
+  // Background parallax
+  const backgroundScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
+  const backgroundOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   useEffect(() => {
     document.documentElement.style.scrollBehavior = 'smooth';
@@ -145,7 +149,7 @@ export default function HomePage() {
       scale: 1,
       transition: {
         duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94],
+        ease: "easeOut" as any,
       }
     }
   };
@@ -162,7 +166,7 @@ export default function HomePage() {
       y: 0,
       transition: {
         duration: 0.9,
-        ease: [0.34, 1.56, 0.64, 1],
+        ease: "easeOut" as any,
       }
     }
   };
@@ -179,7 +183,7 @@ export default function HomePage() {
       scale: 1,
       transition: {
         duration: 0.85,
-        ease: [0.22, 1, 0.36, 1],
+        ease: "easeOut" as any,
       }
     }
   };
@@ -303,8 +307,9 @@ export default function HomePage() {
 
       {/* HERO SECTION */}
       <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background with parallax */}
         <motion.div 
-          style={{ scale }}
+          style={{ scale: backgroundScale, opacity: backgroundOpacity }}
           className="absolute inset-0 z-0"
         >
           <div 
@@ -318,8 +323,13 @@ export default function HomePage() {
           <div className="absolute inset-0 backdrop-blur-[2px]" />
         </motion.div>
 
+        {/* Hero Content with scroll fade */}
         <motion.div 
-          style={{ opacity }}
+          style={{ 
+            opacity: heroOpacity,
+            scale: heroScale,
+            y: heroY
+          }}
           className="relative z-20 text-center px-6 max-w-6xl mx-auto"
         >
           <motion.div
@@ -327,14 +337,14 @@ export default function HomePage() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ 
               duration: 1.2,
-              ease: [0.34, 1.56, 0.64, 1]
+              ease: "easeOut"
             }}
             className="glass rounded-3xl p-12 md:p-16 shimmer pulse-glow"
           >
             <motion.p
               initial={{ opacity: 0, y: 30, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.9, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.9, delay: 0.3, ease: "easeOut" }}
               className="text-white/60 text-xs md:text-sm uppercase tracking-[0.4em] mb-6 font-light"
             >
               Standing Tall with Our Clients
@@ -346,7 +356,7 @@ export default function HomePage() {
               transition={{ 
                 duration: 1,
                 delay: 0.5,
-                ease: [0.34, 1.56, 0.64, 1]
+                ease: "easeOut"
               }}
               className="text-6xl md:text-8xl lg:text-9xl font-extralight text-white mb-12 tracking-tight leading-none"
               style={{ textShadow: '0 0 50px rgba(147,51,234,0.3)' }}
@@ -357,7 +367,7 @@ export default function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 30, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.9, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.9, delay: 0.8, ease: "easeOut" }}
               className="mt-12"
             >
               <motion.a
@@ -373,7 +383,9 @@ export default function HomePage() {
           </motion.div>
         </motion.div>
 
+        {/* Scroll Indicator with fade */}
         <motion.div
+          style={{ opacity: heroOpacity }}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 1.3 }}
@@ -434,7 +446,6 @@ export default function HomePage() {
                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   className="w-full h-full relative"
                 >
-                  {/* Image Background */}
                   <motion.div 
                     className="absolute inset-0"
                     whileHover={{ scale: 1.1 }}
@@ -448,10 +459,8 @@ export default function HomePage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
                   </motion.div>
 
-                  {/* Glassmorphism Overlay */}
                   <div className="absolute inset-0 glass opacity-0 group-hover:opacity-100 transition-all duration-500" />
 
-                  {/* Content */}
                   <div className="relative z-10 h-full p-6 md:p-8 flex flex-col justify-end">
                     <motion.div 
                       className="text-purple-400 mb-4"
@@ -494,7 +503,6 @@ export default function HomePage() {
                     </motion.div>
                   </div>
 
-                  {/* Hover Glow Effect */}
                   <motion.div 
                     className="absolute inset-0 bg-gradient-to-t from-purple-600/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                   />
@@ -676,7 +684,7 @@ export default function HomePage() {
               <motion.div
                 initial={{ opacity: 0, x: -60, scale: 0.9 }}
                 whileInView={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ duration: 0.9, ease: [0.34, 1.56, 0.64, 1] }}
+                transition={{ duration: 0.9, ease: "easeOut" }}
                 viewport={{ once: true }}
               >
                 <h2 className="text-5xl md:text-6xl font-extralight text-white mb-8 tracking-tight" style={{ textShadow: '0 0 30px rgba(147,51,234,0.3)' }}>
@@ -695,7 +703,7 @@ export default function HomePage() {
               <motion.div
                 initial={{ opacity: 0, x: 60, scale: 0.9 }}
                 whileInView={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ duration: 0.9, delay: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
+                transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
                 viewport={{ once: true }}
               >
                 <p className="text-white/70 text-base leading-relaxed mb-6 font-light">
@@ -732,7 +740,7 @@ export default function HomePage() {
             className="horizontal-scroll"
             initial={{ opacity: 0, x: -100 }}
             whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1, ease: "easeOut" }}
             viewport={{ once: true }}
           >
             {[...testimonials, ...testimonials].map((testimonial, index) => (
@@ -743,7 +751,7 @@ export default function HomePage() {
                 transition={{ 
                   duration: 0.7, 
                   delay: (index % 4) * 0.1,
-                  ease: [0.34, 1.56, 0.64, 1]
+                  ease: "easeOut"
                 }}
                 viewport={{ once: true }}
                 className="scroll-item w-[400px] md:w-[500px]"
