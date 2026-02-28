@@ -1,901 +1,401 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { Mail, MapPin, Instagram, Linkedin, ArrowRight, Clock, Building2, Home as HomeIcon, Layers } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { useRef, useState, useEffect } from 'react';
+import { ArrowUpRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-
-const InteractiveScene3D = dynamic(() => import('../components/InteractiveScene3D'), { ssr: false });
+import Footer from '@/components/Footer';
 
 export default function HomePage() {
-  const [hoveredService, setHoveredService] = useState<number | null>(null);
-  const [hoveredType, setHoveredType] = useState<number | null>(null);
-  
+  const [hoveredProject, setHoveredProject] = useState<number | null>(null);
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [focused, setFocused] = useState<string | null>(null);
+
   const heroRef = useRef(null);
-  const testimonialsScrollRef = useRef<HTMLDivElement>(null);
-  
+
   const { scrollYProgress } = useScroll({
     target: heroRef,
-    offset: ["start start", "end start"]
+    offset: ['start start', 'end start'],
   });
-  
-  // Hero content animations based on scroll
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
-  const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -100]);
-  
-  // Background parallax
-  const backgroundScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
-  const backgroundOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.6], [1, 1.08]);
+  const heroTextY = useTransform(scrollYProgress, [0, 0.6], [0, -80]);
 
   useEffect(() => {
-    document.documentElement.style.scrollBehavior = 'smooth';
-
     const style = document.createElement('style');
     style.innerHTML = `
-      html {
-        scroll-behavior: smooth;
-      }
-
-      body {
-        overflow-x: hidden;
-        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
-      }
-
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-
-      ::-webkit-scrollbar-track {
-        background: rgba(10,10,10,0.3);
-        backdrop-filter: blur(10px);
-      }
-
-      ::-webkit-scrollbar-thumb {
-        background: rgba(147,51,234,0.5);
-        border-radius: 10px;
-        backdrop-filter: blur(10px);
-      }
-
-      ::-webkit-scrollbar-thumb:hover {
-        background: rgba(147,51,234,0.7);
-      }
-
-      .glass {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-
-      .glass-hover:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-      }
-
-      .horizontal-scroll {
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-        gap: 1.5rem;
-        padding-bottom: 1.5rem;
-      }
-
-      .scroll-item {
-        scroll-snap-align: start;
-        flex-shrink: 0;
-      }
-
-      @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-      }
-
-      .animate-float {
-        animation: float 3s ease-in-out infinite;
-      }
-
-      @keyframes shimmer {
-        0% { background-position: -1000px 0; }
-        100% { background-position: 1000px 0; }
-      }
-
-      .shimmer {
-        background: linear-gradient(90deg, transparent, rgba(147,51,234,0.1), transparent);
-        background-size: 1000px 100%;
-        animation: shimmer 3s infinite;
-      }
-
-      @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 20px rgba(147,51,234,0.3); }
-        50% { box-shadow: 0 0 40px rgba(147,51,234,0.6); }
-      }
-
-      .pulse-glow {
-        animation: pulse-glow 3s ease-in-out infinite;
-      }
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Lora:ital,wght@0,400;0,500;1,400;1,500&display=swap');
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body { background-color: #F5F0EA; color: #1C1C1C; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+      ::selection { background: #B5603A; color: #F5F0EA; }
+      ::-webkit-scrollbar { width: 3px; }
+      ::-webkit-scrollbar-track { background: #F5F0EA; }
+      ::-webkit-scrollbar-thumb { background: #D6C9B2; border-radius: 2px; }
+      ::-webkit-scrollbar-thumb:hover { background: #B5603A; }
+      input::placeholder, textarea::placeholder { color: rgba(28,28,28,0.3); }
+      input:focus, textarea:focus { outline: none; }
     `;
     document.head.appendChild(style);
-    
-    return () => {
-      document.head.removeChild(style);
-    };
+    return () => { document.head.removeChild(style); };
   }, []);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.12,
-        delayChildren: 0.15,
-      }
-    }
+  const S = {
+    labelText: {
+      fontFamily: "'DM Sans', sans-serif",
+      fontSize: '10px',
+      letterSpacing: '0.4em',
+      textTransform: 'uppercase' as const,
+      color: '#B5603A',
+      marginBottom: '14px',
+      display: 'block',
+    },
+    h2: { fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, color: '#1C1C1C', lineHeight: 1.15 },
+    h2Light: { fontFamily: "'Cormorant Garamond', serif", fontWeight: 300, color: '#F5F0EA', lineHeight: 1.15 },
+    body: { fontFamily: "'Lora', serif", color: 'rgba(28,28,28,0.65)', lineHeight: 2, fontSize: '15px' },
+    dmSans: { fontFamily: "'DM Sans', sans-serif" },
+    cormorant: { fontFamily: "'Cormorant Garamond', serif" },
+    lora: { fontFamily: "'Lora', serif" },
   };
 
-  const itemVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 60, 
-      scale: 0.85,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.8,
-        ease: "easeOut" as any,
-      }
-    }
-  };
-
-  const zoomInVariants = {
-    hidden: { 
-      opacity: 0, 
-      scale: 0.7,
-      y: 50
-    },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: {
-        duration: 0.9,
-        ease: "easeOut" as any,
-      }
-    }
-  };
-
-  const slideUpZoomVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 100,
-      scale: 0.9
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.85,
-        ease: "easeOut" as any,
-      }
-    }
-  };
-
-  const services = [
-    {
-      title: 'Residential Architecture',
-      description: 'Crafting dream homes with innovative design that combines functionality with aesthetic excellence.',
-      icon: <HomeIcon size={40} />,
-      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80',
-      span: 'col-span-2 row-span-1'
-    },
-    {
-      title: 'Commercial Spaces',
-      description: 'Designing modern commercial buildings that enhance productivity and make lasting impressions.',
-      icon: <Building2 size={40} />,
-      image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80',
-      span: 'col-span-1 row-span-1'
-    },
-    {
-      title: 'Urban Planning',
-      description: 'Shaping the future of cities with sustainable and innovative urban planning solutions.',
-      icon: <Layers size={40} />,
-      image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&q=80',
-      span: 'col-span-1 row-span-2'
-    },
-    {
-      title: 'Interior Design',
-      description: 'Transform spaces into stunning environments that reflect your style and functionality.',
-      icon: <HomeIcon size={40} />,
-      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80',
-      span: 'col-span-1 row-span-1'
-    },
-    {
-      title: 'Landscape Design',
-      description: 'Craft outdoor environments that harmonize nature with architectural vision.',
-      icon: <Building2 size={40} />,
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
-      span: 'col-span-2 row-span-1'
-    },
-    {
-      title: 'Construction',
-      description: 'End-to-end construction oversight ensuring quality and precision.',
-      icon: <Layers size={40} />,
-      image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80',
-      span: 'col-span-1 row-span-1'
-    },
+  const elements = [
+    { name: 'Air', symbol: '大気', description: 'Passive ventilation, breeze corridors, breathable spaces' },
+    { name: 'Space', symbol: '空間', description: 'Proportional voids, compressed entries, expansive living' },
+    { name: 'Fire', symbol: '火', description: 'Warm light, material warmth, thermal comfort' },
+    { name: 'Water', symbol: '水', description: 'Courtyard pools, rain-responsive design, monsoon planning' },
+    { name: 'Earth', symbol: '大地', description: 'Laterite, timber, clay tile — material honesty' },
   ];
 
-  const designTypes = [
-    {
-      title: 'Modern Villas',
-      description: 'Luxury villa designs with contemporary aesthetics and sustainable features for premium living experiences.',
-      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80',
-      span: 'col-span-2 row-span-1'
-    },
-    {
-      title: 'High-Rise Buildings',
-      description: 'Innovative vertical architecture that defines skylines and maximizes urban space efficiency.',
-      image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80',
-      span: 'col-span-1 row-span-1'
-    },
-    {
-      title: 'Luxury Interiors',
-      description: 'Bespoke interior solutions that blend elegance with comfort for sophisticated living.',
-      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80',
-      span: 'col-span-1 row-span-2'
-    },
-    {
-      title: 'Office Spaces',
-      description: 'Modern workplace design that boosts productivity and reflects corporate identity.',
-      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80',
-      span: 'col-span-1 row-span-1'
-    },
-    {
-      title: 'Resort Architecture',
-      description: 'Hospitality design that creates unforgettable experiences through thoughtful planning.',
-      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
-      span: 'col-span-2 row-span-1'
-    },
-    {
-      title: 'Landscape Projects',
-      description: 'Outdoor spaces that seamlessly integrate with architecture to create harmony.',
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
-      span: 'col-span-1 row-span-1'
-    },
-    {
-      title: '3D Visualization',
-      description: 'Photorealistic renderings and virtual walkthroughs that bring designs to life.',
-      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80',
-      span: 'col-span-2 row-span-1'
-    },
+  const projects = [
+    { name: 'ĀVARA', tagline: '// a house that breathes //', location: 'Kozhikode, Kerala', category: 'Residential', year: '2024', image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=900&q=80', colSpan: 'md:col-span-2', rowSpan: 'md:row-span-2' },
+    { name: 'STHITHI', tagline: '// stillness in form //', location: 'Palakkad, Kerala', category: 'Residential', year: '2024', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80', colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1' },
+    { name: 'LU–ME', tagline: '// light and material //', location: 'Kochi, Kerala', category: 'Interior', year: '2023', image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=900&q=80', colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1' },
+    { name: 'PUNARJANI', tagline: '// born again from ruin //', location: 'Palakkad, Kerala', category: 'Renovation', year: '2023', image: 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=900&q=80', colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1' },
+    { name: 'Aathma Bhoomi', tagline: '// where land meets soul //', location: 'Mangalore, Karnataka', category: 'Farmhouse', year: '2023', image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=900&q=80', colSpan: 'md:col-span-1', rowSpan: 'md:row-span-1' },
+    { name: 'Hearth by Remi', tagline: '// Morocco meets Malabar //', location: 'Wayanad, Kerala', category: 'Hospitality', year: '2022', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=80', colSpan: 'md:col-span-2', rowSpan: 'md:row-span-1' },
+  ];
+
+  const services = [
+    { number: '01', title: 'Architecture', description: "From concept to construction documentation — we design buildings that negotiate between land, climate, and the lived experience of the inhabitant.", items: ['Site Analysis', 'Concept Design', 'Design Development', 'Construction Drawings', 'Project Management'], image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80' },
+    { number: '02', title: 'Interior', description: "Interiors as extensions of architecture — spatial sequences, material palettes, and furniture selections that carry the building's story inward.", items: ['Space Planning', 'Material Selection', 'Furniture Design', 'Lighting Design', 'Art Curation'], image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80' },
+    { number: '03', title: 'Construction', description: "We oversee the realisation of our designs from ground to finish — coordinating contractors, managing timelines, and ensuring the built outcome honours the design intent.", items: ['Contractor Management', 'Quality Control', 'Timeline Management', 'Material Sourcing', 'Handover'], image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80' },
   ];
 
   const testimonials = [
-    {
-      text: "We had the pleasure of working with Studio Panjabutha on our residential project in Kozhikode. Their architectural vision and attention to detail exceeded all expectations. From the initial concept to final execution, they demonstrated exceptional professionalism and creativity. The team's ability to transform our ideas into reality while maintaining budget and timeline was impressive.",
-      author: "Rajesh Kumar",
-      position: "Homeowner, Kozhikode"
-    },
-    {
-      text: "Studio Panjabutha designed our commercial complex and the results are outstanding! Their innovative approach to space planning and sustainable design has created a building that's both functional and beautiful. The team was collaborative, responsive, and delivered beyond our expectations. Highly recommend for any commercial projects.",
-      author: "Priya Menon",
-      position: "Business Owner, Kochi"
-    },
-    {
-      text: "Working with Studio Panjabutha on our villa project was an absolute pleasure. Their modern design sensibility combined with practical functionality resulted in our dream home. The construction management was flawless, and they guided us through every decision with expertise. Couldn't be happier with our new home!",
-      author: "Anil Thomas",
-      position: "Homeowner, Calicut"
-    },
-    {
-      text: "Studio Panjabutha handled the complete interior design and renovation of our restaurant space. Their creative solutions maximized our space while creating an ambiance that customers love. The attention to lighting, materials, and flow demonstrates their deep understanding of hospitality design. Outstanding work!",
-      author: "Deepa Nair",
-      position: "Restaurant Owner, Kozhikode"
-    },
+    { quote: "Studio Panjabutha didn't just design our home — they listened to the land, the wind, the way light moved at certain hours. The result is a house that feels inevitable.", author: "Rajesh & Anitha Kumar", project: "ĀVARA — Kozhikode, 2024" },
+    { quote: "Every material chosen, every proportion considered. Walking through our completed space feels like reading a poem we hadn't written but always knew.", author: "Priya Menon", project: "LU–ME — Kochi, 2023" },
+    { quote: "The renovation of our ancestral home was deeply emotional. They approached it with the sensitivity of archaeologists and the vision of poets.", author: "Anil Thomas", project: "PUNARJANI — Palakkad, 2023" },
   ];
 
+  const categories = ['All', 'Residential', 'Interior', 'Hospitality', 'Renovation', 'Farmhouse'];
+  const filtered = activeCategory === 'All' ? projects : projects.filter(p => p.category === activeCategory);
+
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%)' }}>
+    <div style={{ backgroundColor: '#F5F0EA', minHeight: '100vh', overflowX: 'hidden' }}>
+
       <Navbar />
 
-      {/* HERO SECTION */}
-      <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Background with parallax */}
-        <motion.div 
-          style={{ scale: backgroundScale, opacity: backgroundOpacity }}
-          className="absolute inset-0 z-0"
-        >
-          <div 
-            className="absolute inset-0 bg-cover bg-center"
-            style={{
-              backgroundImage: 'url(https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1920&q=80)',
-              filter: 'brightness(0.25)',
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-transparent to-black/80" />
-          <div className="absolute inset-0 backdrop-blur-[2px]" />
+      {/* ══════════════ HERO ══════════════ */}
+      <section ref={heroRef} style={{ position: 'relative', height: '100svh', minHeight: '600px', overflow: 'hidden' }}>
+        <motion.div style={{ scale: heroScale, position: 'absolute', inset: 0 }}>
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1920&q=90)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(28,28,28,0.42)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 55%, #F5F0EA 100%)' }} />
         </motion.div>
 
-        {/* Hero Content with scroll fade */}
-        <motion.div 
-          style={{ 
-            opacity: heroOpacity,
-            scale: heroScale,
-            y: heroY
-          }}
-          className="relative z-20 text-center px-6 max-w-6xl mx-auto"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ 
-              duration: 1.2,
-              ease: "easeOut"
-            }}
-            className="glass rounded-3xl p-12 md:p-16 shimmer pulse-glow"
-          >
-            <motion.p
-              initial={{ opacity: 0, y: 30, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.9, delay: 0.3, ease: "easeOut" }}
-              className="text-white/60 text-xs md:text-sm uppercase tracking-[0.4em] mb-6 font-light"
-            >
-              Standing Tall with Our Clients
-            </motion.p>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 50, scale: 0.85 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ 
-                duration: 1,
-                delay: 0.5,
-                ease: "easeOut"
-              }}
-              className="text-6xl md:text-8xl lg:text-9xl font-extralight text-white mb-12 tracking-tight leading-none"
-              style={{ textShadow: '0 0 50px rgba(147,51,234,0.3)' }}
-            >
-              From Concept<br />To Creation
-            </motion.h1>
-
-            <motion.div
-              initial={{ opacity: 0, y: 30, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.9, delay: 0.8, ease: "easeOut" }}
-              className="mt-12"
-            >
-              <motion.a
-                href="#services"
-                whileHover={{ scale: 1.08, boxShadow: '0 0 30px rgba(147,51,234,0.5)' }}
-                whileTap={{ scale: 0.96 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="inline-block glass glass-hover rounded-full px-10 py-4 text-xs uppercase tracking-[0.3em] font-medium transition-all duration-300 text-white"
-              >
-                Explore Services
-              </motion.a>
-            </motion.div>
-          </motion.div>
-        </motion.div>
-
-        {/* Scroll Indicator with fade */}
         <motion.div
-          style={{ opacity: heroOpacity }}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 1.3 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-float"
+          style={{ opacity: heroOpacity, y: heroTextY, position: 'relative', zIndex: 10, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0 24px 80px' }}
         >
-          <motion.a
-            href="#services"
-            className="glass rounded-full w-7 h-12 flex items-start justify-center p-2"
-            whileHover={{ scale: 1.1 }}
-          >
-            <motion.div 
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-1 h-3 bg-purple-400 rounded-full" 
-              style={{ boxShadow: '0 0 10px rgba(147,51,234,0.8)' }}
-            />
-          </motion.a>
+          <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2, delay: 0.4 }}
+            style={{ ...S.dmSans, fontSize: '9px', letterSpacing: '0.48em', color: 'rgba(245,240,234,0.5)', textTransform: 'uppercase', marginBottom: '18px' }}>
+            Kozhikode, Kerala — Est. 2018
+          </motion.p>
+
+          <motion.h1 initial={{ opacity: 0, y: 48 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.5, delay: 0.55 }}
+            style={{ ...S.cormorant, fontSize: 'clamp(52px, 13vw, 120px)', fontWeight: 300, color: '#F5F0EA', lineHeight: 0.93, letterSpacing: '-0.01em', marginBottom: '24px' }}>
+            Studio<br /><em style={{ fontStyle: 'italic' }}>Panjabutha</em>
+          </motion.h1>
+
+          <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2, delay: 0.9 }}
+            style={{ ...S.lora, fontStyle: 'italic', color: 'rgba(245,240,234,0.68)', fontSize: 'clamp(13px, 3.5vw, 17px)', maxWidth: '460px', lineHeight: 1.85 }}>
+            "architecture is not a style to be imposed,<br />but a story to be discovered"
+          </motion.p>
+        </motion.div>
+
+        <motion.div style={{ opacity: heroOpacity, position: 'absolute', bottom: '32px', right: '24px', zIndex: 10 }}>
+          <motion.div animate={{ scaleY: [0.2, 1, 0.2] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ width: '1px', height: '52px', background: 'linear-gradient(to bottom, rgba(245,240,234,0.55), transparent)', transformOrigin: 'top' }} />
         </motion.div>
       </section>
 
-      {/* SERVICES BENTO GRID */}
-      <section id="services" className="py-24 md:py-32 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent" />
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <motion.div
-            variants={zoomInVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="mb-16"
-          >
-            <h2 className="text-5xl md:text-7xl font-extralight text-white tracking-tight" style={{ textShadow: '0 0 30px rgba(147,51,234,0.3)' }}>
-              Our Architectural Services
-            </h2>
-          </motion.div>
+      {/* ══════════════ ABOUT ══════════════ */}
+      <section id="about" style={{ padding: '96px 24px', backgroundColor: '#F5F0EA' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ display: 'grid', gap: '40px', marginBottom: '72px' }} className="grid-cols-1 md:grid-cols-2">
+            <motion.div initial={{ opacity: 0, y: 36 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} viewport={{ once: true }}>
+              <span style={S.labelText}>The Practice</span>
+              <h2 style={{ ...S.h2, fontSize: 'clamp(32px, 6vw, 52px)' }}>
+                Rooted in climate.<br />
+                <em style={{ fontStyle: 'italic', color: '#B5603A' }}>Shaped by place.</em>
+              </h2>
+            </motion.div>
 
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 auto-rows-[280px] gap-4"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-150px" }}
-          >
-            {services.map((service, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                onMouseEnter={() => setHoveredService(index)}
-                onMouseLeave={() => setHoveredService(null)}
-                className={`${service.span} relative overflow-hidden group cursor-pointer rounded-2xl`}
-              >
-                <motion.div
-                  whileHover={{ 
-                    scale: 1.05,
-                    boxShadow: '0 25px 70px rgba(147,51,234,0.4)'
-                  }}
-                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  className="w-full h-full relative"
-                >
-                  <motion.div 
-                    className="absolute inset-0"
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.6 }}
+            <motion.div initial={{ opacity: 0, y: 36 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2 }} viewport={{ once: true }}
+              style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+              <p style={S.body}>
+                Studio Panjabutha is an architecture-led practice focused on climate-responsive,
+                context-sensitive design rooted in Kerala's tropical vernacular. We believe that
+                every structure carries the memory of its land — every wall a negotiation between
+                inside and outside, between the human and the elemental.
+              </p>
+              <div style={{ width: '48px', height: '1px', backgroundColor: '#B5603A', marginTop: '24px' }} />
+            </motion.div>
+          </div>
+
+          {/* Five Elements */}
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }}>
+            <p style={{ ...S.dmSans, fontSize: '10px', letterSpacing: '0.4em', color: 'rgba(28,28,28,0.32)', textTransform: 'uppercase', marginBottom: '32px' }}>
+              The Five Elements — Panjabutha
+            </p>
+            <div style={{ borderTop: '1px solid #D6C9B2' }}>
+              <div style={{ display: 'grid' }} className="grid-cols-1 md:grid-cols-5">
+                {elements.map((el, i) => (
+                  <motion.div
+                    key={el.name}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7, delay: i * 0.08 }}
+                    viewport={{ once: true }}
+                    whileHover={{ backgroundColor: '#1C1C1C' }}
+                    className="group"
+                    style={{ borderBottom: '1px solid #D6C9B2', padding: '28px 20px', cursor: 'default', transition: 'background-color 0.5s ease' }}
                   >
-                    <img 
-                      src={service.image} 
-                      alt={service.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+                    <p className="group-hover:text-white/20" style={{ ...S.cormorant, fontSize: '28px', color: '#D6C9B2', marginBottom: '12px', transition: 'color 0.5s ease' }}>{el.symbol}</p>
+                    <h3 className="group-hover:text-white" style={{ ...S.cormorant, fontSize: '20px', fontWeight: 300, color: '#1C1C1C', marginBottom: '8px', transition: 'color 0.5s ease' }}>{el.name}</h3>
+                    <p className="group-hover:text-white/50" style={{ ...S.dmSans, fontSize: '10px', lineHeight: 1.9, color: 'rgba(28,28,28,0.42)', transition: 'color 0.5s ease' }}>{el.description}</p>
                   </motion.div>
-
-                  <div className="absolute inset-0 glass opacity-0 group-hover:opacity-100 transition-all duration-500" />
-
-                  <div className="relative z-10 h-full p-6 md:p-8 flex flex-col justify-end">
-                    <motion.div 
-                      className="text-purple-400 mb-4"
-                      animate={{ 
-                        rotate: hoveredService === index ? 360 : 0,
-                        scale: hoveredService === index ? 1.15 : 1
-                      }}
-                      transition={{ duration: 0.6, type: "spring" }}
-                    >
-                      {service.icon}
-                    </motion.div>
-                    
-                    <motion.h3 
-                      className="text-2xl md:text-3xl font-light text-white mb-3 tracking-wide"
-                      animate={{ 
-                        y: hoveredService === index ? -8 : 0,
-                        scale: hoveredService === index ? 1.05 : 1
-                      }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                      style={{ textShadow: '0 0 20px rgba(0,0,0,0.8)' }}
-                    >
-                      {service.title}
-                    </motion.h3>
-                    
-                    <motion.p 
-                      className="text-white/80 text-sm leading-relaxed mb-4 font-light"
-                      initial={{ opacity: 0.7 }}
-                      animate={{ opacity: hoveredService === index ? 1 : 0.7 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {service.description}
-                    </motion.p>
-                    
-                    <motion.div
-                      animate={{ x: hoveredService === index ? 8 : 0 }}
-                      transition={{ type: "spring", stiffness: 400 }}
-                      className="flex items-center gap-2 text-white/80 text-xs uppercase tracking-[0.2em] group-hover:text-purple-400 transition-colors font-medium"
-                    >
-                      Learn More <ArrowRight size={14} />
-                    </motion.div>
-                  </div>
-
-                  <motion.div 
-                    className="absolute inset-0 bg-gradient-to-t from-purple-600/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  />
-                </motion.div>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <motion.div
-            variants={slideUpZoomVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="text-center mt-16"
-          >
-            <motion.button
-              whileHover={{ scale: 1.08, boxShadow: '0 0 30px rgba(147,51,234,0.4)' }}
-              whileTap={{ scale: 0.96 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className="glass glass-hover rounded-full text-white px-8 py-3 text-xs uppercase tracking-[0.3em] transition-all duration-300 font-medium"
-            >
-              View All Services
-            </motion.button>
+                ))}
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* DESIGN TYPES BENTO GRID */}
-      <section className="py-24 md:py-32 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-900/5 to-transparent" />
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <motion.div
-            variants={zoomInVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="mb-16"
-          >
-            <h2 className="text-5xl md:text-7xl font-extralight text-white mb-4 tracking-tight" style={{ textShadow: '0 0 30px rgba(147,51,234,0.3)' }}>
-              Project Portfolio
-            </h2>
+      {/* ══════════════ PROJECTS ══════════════ */}
+      <section id="work" style={{ padding: '96px 24px', backgroundColor: '#F5F0EA' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <motion.div initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} viewport={{ once: true }} style={{ marginBottom: '48px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }} className="md:flex-row md:items-end md:justify-between">
+              <div>
+                <span style={S.labelText}>Selected Work</span>
+                <h2 style={{ ...S.h2, fontSize: 'clamp(32px, 6vw, 52px)' }}>Projects</h2>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
+                {categories.map((cat) => (
+                  <motion.button key={cat} onClick={() => setActiveCategory(cat)} whileHover={{ color: '#B5603A' }}
+                    style={{ ...S.dmSans, fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase', background: 'none', border: 'none', color: activeCategory === cat ? '#B5603A' : 'rgba(28,28,28,0.35)', borderBottom: activeCategory === cat ? '1px solid #B5603A' : '1px solid transparent', paddingBottom: '2px', transition: 'color 0.3s', cursor: 'pointer' }}>
+                    {cat}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
           </motion.div>
 
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 auto-rows-[280px] gap-4"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-150px" }}
-          >
-            {designTypes.map((type, index) => (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gridAutoRows: '280px', gap: '10px' }} className="md:grid-cols-3 md:[grid-auto-rows:320px]">
+            {filtered.map((project, i) => (
               <motion.div
-                key={index}
-                variants={itemVariants}
-                onMouseEnter={() => setHoveredType(index)}
-                onMouseLeave={() => setHoveredType(null)}
-                className={`${type.span} relative overflow-hidden group cursor-pointer rounded-2xl`}
+                key={project.name}
+                initial={{ opacity: 0, scale: 0.97 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: i * 0.07 }}
+                viewport={{ once: true }}
+                onMouseEnter={() => setHoveredProject(i)}
+                onMouseLeave={() => setHoveredProject(null)}
+                className={`${project.colSpan} ${project.rowSpan}`}
+                style={{ position: 'relative', overflow: 'hidden', cursor: 'pointer' }}
               >
-                <motion.div
-                  whileHover={{ 
-                    scale: 1.05,
-                    boxShadow: '0 25px 70px rgba(147,51,234,0.4)'
-                  }}
-                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  className="w-full h-full relative"
-                >
-                  <motion.div 
-                    className="absolute inset-0"
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    <img 
-                      src={type.image} 
-                      alt={type.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-                  </motion.div>
-
-                  <div className="absolute inset-0 glass opacity-0 group-hover:opacity-100 transition-all duration-500" />
-
-                  <div className="relative z-10 h-full p-6 md:p-8 flex flex-col justify-end">
-                    <motion.h3 
-                      className="text-2xl md:text-3xl font-light text-white mb-3 tracking-wide"
-                      animate={{ 
-                        y: hoveredType === index ? -8 : 0,
-                        scale: hoveredType === index ? 1.05 : 1
-                      }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                      style={{ textShadow: '0 0 20px rgba(0,0,0,0.8)' }}
-                    >
-                      {type.title}
-                    </motion.h3>
-                    <motion.p 
-                      className="text-white/80 text-sm leading-relaxed mb-4 font-light"
-                      initial={{ opacity: 0.7 }}
-                      animate={{ opacity: hoveredType === index ? 1 : 0.7 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      {type.description}
-                    </motion.p>
-                    <motion.div
-                      animate={{ x: hoveredType === index ? 8 : 0 }}
-                      transition={{ type: "spring", stiffness: 400 }}
-                      className="flex items-center gap-2 text-white/80 text-xs uppercase tracking-[0.2em] group-hover:text-purple-400 transition-colors font-medium"
-                    >
-                      View Project <ArrowRight size={14} />
+                <motion.div animate={{ scale: hoveredProject === i ? 1.06 : 1 }} transition={{ duration: 0.7, ease: 'easeOut' }} style={{ position: 'absolute', inset: 0 }}>
+                  <img src={project.image} alt={project.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                </motion.div>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(28,28,28,0.88) 0%, rgba(28,28,28,0.12) 55%, transparent 100%)' }} />
+                <motion.div animate={{ opacity: hoveredProject === i ? 1 : 0 }} transition={{ duration: 0.4 }} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(181,96,58,0.18)' }} />
+                <div style={{ position: 'absolute', inset: 0, padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ ...S.dmSans, fontSize: '9px', letterSpacing: '0.28em', color: 'rgba(245,240,234,0.65)', textTransform: 'uppercase', backgroundColor: 'rgba(28,28,28,0.35)', backdropFilter: 'blur(4px)', padding: '5px 10px' }}>
+                      {project.category}
+                    </span>
+                    <motion.div animate={{ opacity: hoveredProject === i ? 1 : 0, x: hoveredProject === i ? 0 : 8 }} transition={{ duration: 0.3 }}
+                      style={{ width: '32px', height: '32px', backgroundColor: '#F5F0EA', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <ArrowUpRight size={13} color="#1C1C1C" />
                     </motion.div>
                   </div>
-
-                  <motion.div 
-                    className="absolute inset-0 bg-gradient-to-t from-purple-600/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  />
-                </motion.div>
+                  <motion.div animate={{ y: hoveredProject === i ? -5 : 0 }} transition={{ duration: 0.4 }}>
+                    <h3 style={{ ...S.cormorant, fontSize: 'clamp(22px, 4vw, 34px)', fontWeight: 300, color: '#F5F0EA', letterSpacing: '0.04em', marginBottom: '4px' }}>{project.name}</h3>
+                    <p style={{ ...S.lora, fontStyle: 'italic', color: 'rgba(245,240,234,0.52)', fontSize: '12px', marginBottom: '8px' }}>{project.tagline}</p>
+                    <p style={{ ...S.dmSans, fontSize: '9px', letterSpacing: '0.28em', color: 'rgba(245,240,234,0.42)', textTransform: 'uppercase' }}>{project.location} — {project.year}</p>
+                  </motion.div>
+                </div>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
 
-          <motion.div
-            variants={slideUpZoomVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="text-center mt-16"
-          >
-            <motion.button
-              whileHover={{ scale: 1.08, boxShadow: '0 0 30px rgba(147,51,234,0.4)' }}
-              whileTap={{ scale: 0.96 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className="glass glass-hover rounded-full text-white px-8 py-3 text-xs uppercase tracking-[0.3em] transition-all duration-300 font-medium"
-            >
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 1 }} viewport={{ once: true }} style={{ marginTop: '52px', display: 'flex', justifyContent: 'center' }}>
+            <motion.button whileHover={{ backgroundColor: '#1C1C1C', color: '#F5F0EA' }} transition={{ duration: 0.4 }}
+              style={{ ...S.dmSans, fontSize: '10px', letterSpacing: '0.42em', textTransform: 'uppercase', border: '1px solid rgba(28,28,28,0.25)', padding: '14px 40px', backgroundColor: 'transparent', color: '#1C1C1C', transition: 'all 0.4s ease', cursor: 'pointer' }}>
               View All Projects
             </motion.button>
           </motion.div>
         </div>
       </section>
 
-      {/* 3D SECTION */}
-      <section id="interactive" className="h-screen relative">
-        <div className="absolute inset-0 backdrop-blur-sm bg-black/20" />
-        
+     {/* ══════════════ SERVICES ══════════════ */}
+<section id="services" style={{ padding: '96px 24px', backgroundColor: '#F5F0EA' }}>
+  <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+    <motion.div initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} viewport={{ once: true }} style={{ marginBottom: '60px' }}>
+      <span style={{ ...S.labelText }}>What We Do</span>
+      <h2 style={{ ...S.h2, fontSize: 'clamp(32px, 6vw, 52px)' }}>Services</h2>
+    </motion.div>
+
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '1px', backgroundColor: '#D6C9B2' }} className="md:grid-cols-3">
+      {services.map((service, i) => (
         <motion.div
-          variants={zoomInVariants}
-          initial="hidden"
-          whileInView="visible"
+          key={service.title}
+          initial={{ opacity: 0, y: 36 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: i * 0.14 }}
           viewport={{ once: true }}
-          className="absolute top-16 left-0 right-0 z-20 text-center px-6"
+          whileHover={{ backgroundColor: '#EDE8E1' }}
+          style={{ backgroundColor: '#F5F0EA', padding: '36px 28px', cursor: 'default', transition: 'background-color 0.5s ease' }}
         >
-          <motion.div 
-            className="glass rounded-2xl inline-block px-12 py-6 pulse-glow"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          >
-            <h2 className="text-5xl md:text-7xl font-extralight text-white tracking-tight" style={{ textShadow: '0 0 30px rgba(147,51,234,0.5)' }}>
-              Explore In 3D
-            </h2>
-          </motion.div>
+          <div style={{ overflow: 'hidden', marginBottom: '24px', height: '160px' }}>
+            <motion.img
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.6 }}
+              src={service.image}
+              alt={service.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.75 }}
+              loading="lazy"
+            />
+          </div>
+
+          <p style={{ ...S.cormorant, fontSize: '44px', color: 'rgba(28,28,28,0.08)', marginBottom: '10px' }}>
+            {service.number}
+          </p>
+
+          <h3 style={{ ...S.cormorant, fontSize: '26px', fontWeight: 300, color: '#1C1C1C', marginBottom: '12px', letterSpacing: '0.04em' }}>
+            {service.title}
+          </h3>
+
+          <p style={{ ...S.lora, color: 'rgba(28,28,28,0.55)', fontSize: '14px', lineHeight: 2, marginBottom: '24px' }}>
+            {service.description}
+          </p>
+
+          <div style={{ borderTop: '1px solid #D6C9B2', paddingTop: '18px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {service.items.map((item) => (
+              <p key={item} style={{ ...S.dmSans, fontSize: '9px', letterSpacing: '0.24em', color: 'rgba(28,28,28,0.4)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ width: '14px', height: '1px', backgroundColor: '#B5603A', display: 'inline-block', flexShrink: 0 }} />
+                {item}
+              </p>
+            ))}
+          </div>
         </motion.div>
-        
-        <InteractiveScene3D modelUrl="/models/building.glb" />
-      </section>
+      ))}
+    </div>
+  </div>
+</section>
 
-      {/* ABOUT SECTION */}
-      <section className="py-24 md:py-32 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/5 to-transparent" />
-        
-        <div className="max-w-6xl mx-auto px-6 relative z-10">
-          <motion.div 
-            className="glass glass-hover rounded-3xl p-12 md:p-16"
-            variants={zoomInVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          >
-            <div className="grid md:grid-cols-2 gap-16 items-start">
-              <motion.div
-                initial={{ opacity: 0, x: -60, scale: 0.9 }}
-                whileInView={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ duration: 0.9, ease: "easeOut" }}
-                viewport={{ once: true }}
-              >
-                <h2 className="text-5xl md:text-6xl font-extralight text-white mb-8 tracking-tight" style={{ textShadow: '0 0 30px rgba(147,51,234,0.3)' }}>
-                  About Our Studio
-                </h2>
-                <motion.button
-                  whileHover={{ scale: 1.08, boxShadow: '0 0 30px rgba(147,51,234,0.4)' }}
-                  whileTap={{ scale: 0.96 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  className="glass glass-hover rounded-full text-white px-8 py-3 text-xs uppercase tracking-[0.3em] transition-all duration-300 font-medium"
-                >
-                  Know More About Us
-                </motion.button>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 60, scale: 0.9 }}
-                whileInView={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
-                viewport={{ once: true }}
-              >
-                <p className="text-white/70 text-base leading-relaxed mb-6 font-light">
-                  We're a premier Architecture and Design Studio in Kozhikode, Kerala. As innovators and creators, we bring your vision to life with cutting-edge architectural design and comprehensive construction solutions.
-                </p>
-                <p className="text-white/70 text-base leading-relaxed font-light">
-                  At Studio Panjabutha, we create architectural masterpieces, stunning interiors, and sustainable construction projects. Whether you're building your dream home or designing a commercial space, we bring innovation, passion, and precision to every project.
-                </p>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS HORIZONTAL SCROLL */}
-      <section className="py-24 md:py-32 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/10 to-transparent" />
-        
-        <div className="max-w-[95vw] mx-auto px-6 relative z-10">
-          <motion.div
-            variants={zoomInVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="mb-12"
-          >
-            <h2 className="text-5xl md:text-7xl font-extralight text-white tracking-tight" style={{ textShadow: '0 0 30px rgba(147,51,234,0.3)' }}>
-              Client Testimonials
+      {/* ══════════════ TESTIMONIALS ══════════════ */}
+      <section style={{ padding: '96px 24px', backgroundColor: '#F5F0EA' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <motion.div initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} viewport={{ once: true }} style={{ marginBottom: '60px' }}>
+            <span style={S.labelText}>Client Voices</span>
+            <h2 style={{ ...S.h2, fontSize: 'clamp(28px, 6vw, 52px)', lineHeight: 1.2 }}>
+              Words from those<br />
+              <em style={{ fontStyle: 'italic', color: '#B5603A' }}>who live in our work</em>
             </h2>
           </motion.div>
 
-          <motion.div 
-            ref={testimonialsScrollRef} 
-            className="horizontal-scroll"
-            initial={{ opacity: 0, x: -100 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            viewport={{ once: true }}
-          >
-            {[...testimonials, ...testimonials].map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: 100, scale: 0.85 }}
-                whileInView={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ 
-                  duration: 0.7, 
-                  delay: (index % 4) * 0.1,
-                  ease: "easeOut"
-                }}
-                viewport={{ once: true }}
-                className="scroll-item w-[400px] md:w-[500px]"
-              >
-                <motion.div 
-                  whileHover={{ 
-                    y: -12, 
-                    scale: 1.03,
-                    boxShadow: '0 20px 60px rgba(147,51,234,0.3)'
-                  }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="glass glass-hover rounded-2xl p-10 h-full transition-all duration-300 relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl" />
-                  
-                  <p className="text-white/80 text-sm leading-relaxed mb-8 font-light relative z-10">{testimonial.text}</p>
-                  <div className="border-t border-white/10 pt-6 relative z-10">
-                    <p className="text-white font-light text-base mb-1">{testimonial.author}</p>
-                    <p className="text-white/50 text-xs font-light">{testimonial.position}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '1px', backgroundColor: '#D6C9B2' }} className="md:grid-cols-3">
+            {testimonials.map((t, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: i * 0.14 }} viewport={{ once: true }}
+                whileHover={{ backgroundColor: '#1C1C1C' }} className="group"
+                style={{ backgroundColor: '#F5F0EA', padding: '36px 28px', cursor: 'default', transition: 'background-color 0.7s ease' }}>
+                <p className="group-hover:text-[#B5603A]/25" style={{ ...S.cormorant, fontSize: '56px', color: '#D6C9B2', lineHeight: 1, marginBottom: '16px', transition: 'color 0.5s ease' }}>"</p>
+                <p className="group-hover:text-white/72" style={{ ...S.lora, fontStyle: 'italic', color: 'rgba(28,28,28,0.72)', fontSize: '14px', lineHeight: 2, marginBottom: '24px', transition: 'color 0.5s ease' }}>{t.quote}</p>
+                <div style={{ borderTop: '1px solid #D6C9B2', paddingTop: '18px' }}>
+                  <p className="group-hover:text-white" style={{ ...S.dmSans, fontSize: '12px', color: '#1C1C1C', fontWeight: 500, transition: 'color 0.5s ease' }}>{t.author}</p>
+                  <p style={{ ...S.dmSans, fontSize: '9px', letterSpacing: '0.2em', color: '#B5603A', textTransform: 'uppercase', marginTop: '4px' }}>{t.project}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════ CONTACT ══════════════ */}
+      <section id="contact" style={{ padding: '96px 24px', backgroundColor: '#F5F0EA' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ display: 'grid', gap: '64px' }} className="grid-cols-1 md:grid-cols-2">
+
+            <motion.div initial={{ opacity: 0, x: -24 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 1 }} viewport={{ once: true }}>
+              <span style={S.labelText}>Begin a Conversation</span>
+              <h2 style={{ ...S.h2, fontSize: 'clamp(28px, 6vw, 52px)', marginBottom: '28px' }}>
+                Let's build<br />
+                <em style={{ fontStyle: 'italic', color: '#B5603A' }}>something rooted</em>
+              </h2>
+              <p style={{ ...S.body, marginBottom: '44px' }}>
+                Every project begins with a conversation. Tell us about your land, your brief,
+                your aspirations — and we'll tell you how we might discover the story together.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {[
+                  { label: 'Location', value: 'HeadQ, 6th floor, Tower 1\nHilite Business Park\nKozhikode, Kerala 673014' },
+                  { label: 'Email', value: 'studiopanjabutha@gmail.com' },
+                  { label: 'Hours', value: 'Monday – Saturday\n9:00 AM – 6:00 PM' },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <p style={{ ...S.dmSans, fontSize: '9px', letterSpacing: '0.4em', color: '#B5603A', textTransform: 'uppercase', marginBottom: '6px' }}>{item.label}</p>
+                    <p style={{ ...S.lora, color: 'rgba(28,28,28,0.62)', fontSize: '14px', whiteSpace: 'pre-line', lineHeight: 1.9 }}>{item.value}</p>
                   </div>
-                </motion.div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CONTACT */}
-      <section id="contact" className="py-24 md:py-32 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/5 to-black/50" />
-        
-        <div className="max-w-6xl mx-auto px-6 relative z-10">
-          <motion.div
-            variants={zoomInVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="mb-16"
-          >
-            <h2 className="text-5xl md:text-7xl font-extralight text-white mb-4 tracking-tight" style={{ textShadow: '0 0 30px rgba(147,51,234,0.3)' }}>
-              Get In Touch
-            </h2>
-          </motion.div>
-
-          <motion.div 
-            className="grid md:grid-cols-3 gap-8"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-          >
-            {[
-              { 
-                icon: <MapPin size={20} />, 
-                title: 'Location', 
-                content: 'HeadQ, 6th floor, Tower 1\nHilite Business Park\nKozhikode, Kerala 673014, India'
-              },
-              { 
-                icon: <Mail size={20} />, 
-                title: 'Email', 
-                content: 'studiopanjabutha@gmail.com'
-              },
-              { 
-                icon: <Clock size={20} />, 
-                title: 'Office Hours', 
-                content: 'Monday - Saturday\n9:00 AM - 6:00 PM'
-              },
-            ].map((item, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                whileHover={{ 
-                  y: -12, 
-                  scale: 1.05,
-                  boxShadow: '0 20px 60px rgba(147,51,234,0.3)'
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="glass glass-hover rounded-2xl p-8 transition-all duration-300 relative overflow-hidden group"
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-purple-600/10 rounded-full blur-2xl group-hover:bg-purple-600/20 transition-all duration-500" />
-                
-                <motion.div 
-                  className="text-purple-400 mb-4 relative z-10"
-                  whileHover={{ scale: 1.2, rotate: 10 }}
-                  transition={{ type: "spring", stiffness: 400 }}
-                >
-                  {item.icon}
-                </motion.div>
-                <h3 className="text-white text-xs uppercase tracking-[0.2em] mb-4 font-medium relative z-10">{item.title}</h3>
-                <p className="text-white/60 text-sm leading-relaxed whitespace-pre-line font-light relative z-10">{item.content}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="relative py-16">
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <motion.div
-            variants={zoomInVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            whileHover={{ scale: 1.01 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="glass rounded-3xl p-12"
-          >
-            <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
-              <div className="text-center md:text-left">
-                <h3 className="text-2xl font-light text-white mb-2 uppercase tracking-wider" style={{ textShadow: '0 0 20px rgba(147,51,234,0.3)' }}>
-                  Studio Panjabutha
-                </h3>
-                <p className="text-white/50 text-sm font-light">Creating exceptional spaces through innovative architecture</p>
-              </div>
-              
-              <div className="flex gap-4">
-                {[<Instagram key="ig" size={18} />, <Linkedin key="li" size={18} />].map((icon, i) => (
-                  <motion.a 
-                    key={i}
-                    href="#" 
-                    whileHover={{ 
-                      scale: 1.2, 
-                      y: -5,
-                      boxShadow: '0 10px 30px rgba(147,51,234,0.4)'
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    className="glass glass-hover rounded-full w-12 h-12 flex items-center justify-center text-white/70 hover:text-purple-400 transition-all"
-                  >
-                    {icon}
-                  </motion.a>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
-            <div className="text-center pt-8 border-t border-white/10">
-              <p className="text-white/40 text-xs font-light">© {new Date().getFullYear()} Studio Panjabutha. All rights reserved.</p>
-            </div>
-          </motion.div>
+            <motion.div initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 1 }} viewport={{ once: true }}>
+              <form style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {[
+                  { name: 'name', label: 'Your Name', type: 'text' },
+                  { name: 'email', label: 'Email Address', type: 'email' },
+                  { name: 'project', label: 'Project Type', type: 'text' },
+                ].map((field) => (
+                  <div key={field.name}>
+                    <label style={{ ...S.dmSans, fontSize: '9px', letterSpacing: '0.4em', color: 'rgba(28,28,28,0.32)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>{field.label}</label>
+                    <input type={field.type} placeholder={field.label}
+                      onFocus={() => setFocused(field.name)} onBlur={() => setFocused(null)}
+                      style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: `1px solid ${focused === field.name ? '#B5603A' : '#D6C9B2'}`, padding: '10px 0', ...S.lora, fontSize: '15px', color: '#1C1C1C', outline: 'none', transition: 'border-color 0.3s ease' }}
+                    />
+                  </div>
+                ))}
+                <div>
+                  <label style={{ ...S.dmSans, fontSize: '9px', letterSpacing: '0.4em', color: 'rgba(28,28,28,0.32)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Your Brief</label>
+                  <textarea rows={4} placeholder="Tell us about your project..."
+                    onFocus={() => setFocused('message')} onBlur={() => setFocused(null)}
+                    style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: `1px solid ${focused === 'message' ? '#B5603A' : '#D6C9B2'}`, padding: '10px 0', ...S.lora, fontSize: '15px', color: '#1C1C1C', outline: 'none', resize: 'none', transition: 'border-color 0.3s ease' }}
+                  />
+                </div>
+                <motion.button type="submit" whileHover={{ backgroundColor: '#1C1C1C', color: '#F5F0EA' }} whileTap={{ scale: 0.98 }} transition={{ duration: 0.4 }}
+                  style={{ width: '100%', border: '1px solid rgba(28,28,28,0.7)', padding: '16px', ...S.dmSans, fontSize: '10px', letterSpacing: '0.48em', textTransform: 'uppercase', backgroundColor: 'transparent', color: '#1C1C1C', transition: 'all 0.4s ease', marginTop: '8px', cursor: 'pointer' }}>
+                  Send Brief
+                </motion.button>
+              </form>
+            </motion.div>
+          </div>
         </div>
-      </footer>
+      </section>
+
+      <Footer />
+
     </div>
   );
 }

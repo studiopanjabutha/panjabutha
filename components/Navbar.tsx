@@ -1,170 +1,164 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const navLinks = [
+  { label: 'Work', href: '#work' },
+  { label: 'About', href: '#about' },
+  { label: 'Services', href: '#services' },
+  { label: 'Contact', href: '#contact' },
+];
+
+const S = {
+  cormorant: { fontFamily: "'Cormorant Garamond', serif" },
+  dmSans: { fontFamily: "'DM Sans', sans-serif" },
+  lora: { fontFamily: "'Lora', serif" },
+};
 
 export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    
+    const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    <motion.nav 
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-        transition: 'all 0.3s',
-        backgroundColor: scrolled ? 'rgba(0, 0, 0, 0.95)' : 'rgba(0, 0, 0, 0.5)',
-        borderBottom: scrolled ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
-        backdropFilter: 'blur(20px)',
-      }}
-    >
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '80px' }}>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <Link 
-              href="/"
-              style={{ 
-                fontSize: '18px', 
-                fontWeight: 300, 
-                letterSpacing: '0.2em', 
-                color: 'white',
+    <>
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, ease: 'easeOut' }}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '20px 24px',
+          backgroundColor: scrolled ? 'rgba(245,240,234,0.94)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(16px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(214,201,178,0.4)' : 'none',
+          transition: 'all 0.6s ease',
+        }}
+      >
+        {/* Logo */}
+        <a href="/" style={{ textDecoration: 'none' }}>
+          <p style={{ ...S.cormorant, fontSize: '13px', letterSpacing: '0.28em', color: '#1C1C1C', textTransform: 'uppercase', fontWeight: 300, marginBottom: '2px' }}>
+            Studio Panjabutha
+          </p>
+          <p style={{ ...S.dmSans, fontSize: '8px', letterSpacing: '0.38em', color: '#B5603A', textTransform: 'uppercase' }}>
+            Architecture · Interior · Construction
+          </p>
+        </a>
+
+        {/* Desktop links */}
+        <nav style={{ display: 'flex', gap: '40px' }} className="hidden md:flex">
+          {navLinks.map((link) => (
+            <motion.a
+              key={link.label}
+              href={link.href}
+              whileHover={{ color: '#B5603A' }}
+              style={{
+                ...S.dmSans,
+                fontSize: '10px',
+                letterSpacing: '0.25em',
+                textTransform: 'uppercase',
+                color: 'rgba(28,28,28,0.55)',
                 textDecoration: 'none',
                 transition: 'color 0.3s',
               }}
-              className="text-sm md:text-xl"
             >
-              STUDIO PANJABUTHA
-            </Link>
-          </motion.div>
+              {link.label}
+            </motion.a>
+          ))}
+        </nav>
 
-          {/* Desktop Menu - Shows on desktop only */}
-          <div 
-            className="hidden md:flex"
-            style={{ 
-              gap: '48px', 
-              alignItems: 'center'
-            }} 
-          >
-            {[
-              { name: 'HOME', href: '/' },
-              { name: 'PROJECTS', href: '/projects' },
-              { name: 'ABOUT', href: '/about' },
-              { name: 'CONTACT', href: '/contact' }
-            ].map((item, i) => (
-              <motion.div 
-                key={item.name}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
-                whileHover={{ y: -2 }}
-              >
-                <Link 
-                  href={item.href}
-                  style={{ 
-                    fontSize: '14px', 
-                    fontWeight: 300, 
-                    letterSpacing: '0.15em', 
-                    color: 'white',
-                    textDecoration: 'none',
-                    transition: 'color 0.3s',
-                  }}
-                >
-                  {item.name}
-                </Link>
-              </motion.div>
-            ))}
-          </div>
+        {/* Mobile burger */}
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="md:hidden"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', flexDirection: 'column', gap: '5px' }}
+        >
+          <motion.span
+            animate={{ rotate: menuOpen ? 45 : 0, y: menuOpen ? 9 : 0 }}
+            style={{ display: 'block', width: '22px', height: '1px', backgroundColor: '#1C1C1C', transformOrigin: 'center' }}
+          />
+          <motion.span
+            animate={{ opacity: menuOpen ? 0 : 1 }}
+            style={{ display: 'block', width: '22px', height: '1px', backgroundColor: '#1C1C1C' }}
+          />
+          <motion.span
+            animate={{ rotate: menuOpen ? -45 : 0, y: menuOpen ? -9 : 0 }}
+            style={{ display: 'block', width: '22px', height: '1px', backgroundColor: '#1C1C1C', transformOrigin: 'center' }}
+          />
+        </button>
+      </motion.header>
 
-          {/* Mobile Menu Button - Shows on mobile only */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="block md:hidden"
-            style={{ 
-              color: 'white', 
-              background: 'none', 
-              border: 'none', 
-              cursor: 'pointer', 
-              zIndex: 60,
-              padding: '8px',
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 90,
+              backgroundColor: '#F5F0EA',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '36px',
             }}
           >
-            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
-        </div>
-
-        {/* Mobile Menu Dropdown */}
-        {isMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{ 
-              paddingBottom: '24px', 
-              paddingTop: '16px',
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '20px',
-              borderTop: '1px solid rgba(255,255,255,0.1)',
-              marginTop: '0',
-            }} 
-            className="md:hidden"
-          >
-            {[
-              { name: 'HOME', href: '/' },
-              { name: 'PROJECTS', href: '/projects' },
-              { name: 'ABOUT', href: '/about' },
-              { name: 'CONTACT', href: '/contact' }
-            ].map((item, index) => (
-              <motion.div
-                key={item.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
+            {navLinks.map((link, i) => (
+              <motion.a
+                key={link.label}
+                href={link.href}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.08 }}
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  ...S.cormorant,
+                  fontSize: '42px',
+                  fontWeight: 300,
+                  color: '#1C1C1C',
+                  letterSpacing: '0.06em',
+                  textDecoration: 'none',
+                }}
               >
-                <Link 
-                  href={item.href}
-                  onClick={() => setIsMenuOpen(false)} 
-                  style={{ 
-                    fontSize: '16px', 
-                    fontWeight: 300, 
-                    letterSpacing: '0.15em', 
-                    color: 'white', 
-                    textDecoration: 'none',
-                    display: 'block',
-                    padding: '8px 0',
-                    transition: 'all 0.3s',
-                  }}
-                >
-                  {item.name}
-                </Link>
-              </motion.div>
+                {link.label}
+              </motion.a>
             ))}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              style={{
+                ...S.dmSans,
+                fontSize: '9px',
+                letterSpacing: '0.4em',
+                color: '#B5603A',
+                textTransform: 'uppercase',
+                marginTop: '20px',
+              }}
+            >
+              Architecture · Interior · Construction
+            </motion.p>
           </motion.div>
         )}
-      </div>
-    </motion.nav>
+      </AnimatePresence>
+    </>
   );
 }

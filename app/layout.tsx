@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
-
-const inter = Inter({ subsets: ["latin"], weight: ['300', '400', '500'] });
 
 export const metadata: Metadata = {
   title: "STUDIO PANJABUTHA",
@@ -17,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body>
         <SmoothScroll>
           {children}
         </SmoothScroll>
